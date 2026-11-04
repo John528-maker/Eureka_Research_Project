@@ -60,7 +60,7 @@ export default function SimPanel({ tab, params, onParams, G, onG }: Props) {
         </div>
         <div className="col-right">
           <div className="o-form">
-            <ParamForm tab={tab} params={params} onParams={onParams} />
+            <ParamForm key={tab} tab={tab} params={params} onParams={onParams} />
           </div>
           <div className="o-slider">
             <GearSlider G={G} range={params.gRange} step={params.gStep} optimalG={opt.G} onChange={onG} />

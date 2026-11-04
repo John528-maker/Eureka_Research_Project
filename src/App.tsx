@@ -30,7 +30,6 @@ export default function App() {
       <Header />
       <TabBar tabs={TABS} active={activeTab} onChange={setActiveTab} />
       <SimPanel
-        key={activeTab}
         tab={activeTab}
         params={paramsByTab[activeTab]}
         onParams={(p) => setParamsByTab((s) => ({ ...s, [activeTab]: p }))}
