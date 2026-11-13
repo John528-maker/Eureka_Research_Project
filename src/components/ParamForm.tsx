@@ -42,14 +42,14 @@ export default function ParamForm({ tab, params: p, onParams }: Props) {
             value={p.rpm!}
             onChange={(rpm) => set({ rpm })}
             side={<span className="small side-note">속도 {speedOf(p).toFixed(2)} m/s (v = 2π·r·rpm/60)</span>}
-            hint={<SmallNote>기본값은 임시값이에요. 실제 회전수를 넣어 주세요.</SmallNote>}
+            hint={<SmallNote>구동 모터 200rpm, 기어 두 개가 같은 크기(1:1)라고 본 값이에요. 실제로 잰 회전수가 있으면 넣어 주세요.</SmallNote>}
           />
           <NumberField
             label="최소 전압"
             unit="V"
             value={p.V_min}
             onChange={(V_min) => set({ V_min })}
-            hint={<SmallNote>배터리 전압 범위 11~12V. 12V로 바꿔 넣을 수 있어요.</SmallNote>}
+            hint={<SmallNote>배터리 전압 11~12V 중 최소 전압을 12V로 두었어요.</SmallNote>}
           />
         </>
       )}
@@ -61,7 +61,7 @@ export default function ParamForm({ tab, params: p, onParams }: Props) {
           onChange={(k) => set({ k })}
           hint={
             tab === 'model' && (
-              <SmallNote>범준 님 제공값(12V@150rpm). JGB37-520 사양표 감속비와 맞지 않아 라벨 확인 필요</SmallNote>
+              <SmallNote>발전용 모터 200rpm에서 12V가 나온다고 보고 12/200으로 계산한 값</SmallNote>
             )
           }
         />

@@ -382,6 +382,19 @@ input[type='range'] {
   height: 260px;
 }
 
+/* 파형을 좌우로 끌어 넘기기: 세로 스크롤은 그대로 둠 */
+.wave-drag {
+  position: relative;
+  height: 100%;
+  cursor: grab;
+  touch-action: pan-y;
+  user-select: none;
+}
+
+.wave-drag:active {
+  cursor: grabbing;
+}
+
 /* 결과 */
 .result {
   padding: 16px;

@@ -8,14 +8,14 @@ import ParamForm from './ParamForm.tsx'
 import ResultCard from './ResultCard.tsx'
 import SmallNote from './SmallNote.tsx'
 import WaveZoomChart from './WaveZoomChart.tsx'
-import { optimal, simulate, sweepG, verify } from '../lib/physics.ts'
+import { FRICTION_S, optimal, simulate, sweepG, verify } from '../lib/physics.ts'
 import { toSI, type Params, type TabId } from '../lib/presets.ts'
 
 const Scene3D = lazy(() => import('./Scene3D.tsx'))
 
 const NOTES: Record<TabId, string> = {
   leaf: '기준차량: 닛산 리프 2017년형 30kWh · 공차중량 1521kg(트림 미확인, 1,507~1,545kg 범위) · 휠 반지름 0.216m(타이어 약 0.32m) · 최소 전압 240V · 배터리 용량 30kWh · 발전기 효율 80%',
-  model: '발전기 JGB37-520(감속기 내장) · k는 출력축 기준 · 화면의 G는 바깥 기어만 · k는 제공값 · R_i는 추정값 · η는 가정값',
+  model: '구동: 12V 배터리 → L298N → 모터 200rpm → 기어 7cm(같은 크기 2개, 1:1) → 바퀴 15cm · 발전: 메인 바퀴 테두리에 닿는 발전기 바퀴 → 모터 200rpm(12V) · 기어비 G = 메인 바퀴 지름 ÷ 발전기 바퀴 지름 · 전류·전압은 INA219 2개로 측정 · R_i는 추정값 · η는 가정값',
 }
 
 interface Props {
@@ -99,6 +99,11 @@ export default function SimPanel({ tab, params, onParams, G, onG }: Props) {
                   계산)
                 </li>
                 <li>교류 파형: f = G·v(t)/(2π·r), 전압 = e(t)·sin(2π∫f dt)</li>
+                <li>
+                  기계적 마찰(베어링·기어·바퀴 접촉·공기 저항)은 계산에 넣지 않았어요. 손실은 내부저항 열(R_i)과 발전기 효율(η)만
+                  반영해요. 그래서 실제 장치는 계산보다 빨리 멈추고 덜 저장돼요.
+                </li>
+                <li>회생 구간 뒤 마찰 브레이크 {FRICTION_S}초는 정지까지 보여 주기 위한 표시용 값이에요(에너지 계산과 무관).</li>
               </ul>
             </Collapsible>
           </div>

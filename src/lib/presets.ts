@@ -18,11 +18,11 @@ export interface Params {
 export const leaf: Params = { r: 0.216, m: 1521, v0_kmh: 60, V_min: 240, k: 0.08, R_i: 2.3 /* 이상화 가정값 */, eta: 0.8, gRange: [1, 20], gStep: 0.1 }
 
 export const model: Params = {
-  r: 0.15,
+  r: 0.075, /* 메인 바퀴 지름 15cm */
   m: 1,
-  rpm: 150 /* TODO 임시값 */,
-  V_min: 11,
-  k: 0.08 /* 사용자 제공, 사양표 불일치: 라벨 rpm 확인 후 12/rpm */,
+  rpm: 200 /* 구동 모터 200rpm, 모터 기어와 축 기어가 같은 크기(실물 사진 기준 1:1) → 바퀴도 200rpm */,
+  V_min: 12,
+  k: 0.06 /* 발전용 모터 12V@200rpm → 12/200 */,
   R_i: 10 /* 추정: 사양표 근사 */,
   eta: 0.8 /* 가정 */,
   gRange: [1, 10],

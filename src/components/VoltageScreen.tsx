@@ -36,7 +36,7 @@ export default function VoltageScreen({ position, showLabel, valueRef, braking =
           0.0 V
         </span>
       </Html>
-      <Tag position={[0.05, 0.72, 0]} anchor={[0, 0.39, 0]} visible={showLabel}>
+      <Tag position={[0.4, 0.72, 0]} anchor={[0, 0.39, 0]} visible={showLabel}>
         출력 화면
       </Tag>
     </group>

@@ -68,6 +68,18 @@ export function distance(s: Sim, v0: number, t: number) {
   return s.charging ? s.vth * t + (v0 - s.vth) * s.tau * (1 - Math.exp(-t / s.tau)) : v0 * t
 }
 
+/** 회생 구간이 끝난 뒤 마찰 브레이크로 멈추는 표시용 시간 [s] (물리 계산에는 쓰지 않음) */
+export const FRICTION_S = 1
+
+/** 정지할 때까지의 속도 v와 이동 거리 s: 회생 구간(0~tEnd) 뒤 FRICTION_S 동안 등감속으로 정지 */
+export function motion(sim: Sim, v0: number, t: number) {
+  const T1 = sim.charging ? sim.tEnd : 0
+  if (t <= T1) return { v: velocity(sim, v0, t), s: distance(sim, v0, t) }
+  const v1 = velocity(sim, v0, T1)
+  const u = Math.min(t - T1, FRICTION_S)
+  return { v: v1 * (1 - u / FRICTION_S), s: distance(sim, v0, T1) + v1 * u - (v1 * u * u) / (2 * FRICTION_S) }
+}
+
 export interface SweepPoint { G: number; Estore: number; a0: number }
 export interface Sweep { points: SweepPoint[]; Gstar: number }
 
