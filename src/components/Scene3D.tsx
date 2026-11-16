@@ -5,12 +5,11 @@ import type { Group } from 'three'
 import Gear from './Gear.tsx'
 import Part, { MAT, Tag, type V3 } from './Part.tsx'
 import ToggleButton from './ToggleButton.tsx'
-import VoltageScreen from './VoltageScreen.tsx'
+import VoltageScreen, { type VoltageReading } from './VoltageScreen.tsx'
 import { FRICTION_S, motion, type Phys, type Sim } from '../lib/physics.ts'
-import type { TabId } from '../lib/presets.ts'
 
 // 화면 회전 속도 = 실제 각속도 × SPIN (시간은 실제 속도로 흐름)
-const SPIN: Record<TabId, number> = { leaf: 1 / 100, model: 1 / 10 }
+const SPIN = 1 / 10
 const HOLD_S = 0.8
 
 const PURPLE = '#5B2E8F'
@@ -46,7 +45,6 @@ const hasWebGL = () => {
 }
 
 interface RigProps {
-  tab: TabId
   sim: Sim
   p: Phys
   paused: boolean
@@ -56,13 +54,13 @@ interface RigProps {
   timeEl: RefObject<HTMLSpanElement | null>
 }
 
-function Rig({ tab, sim, p, paused, showLabels, braking, onBraking, timeEl }: RigProps) {
+function Rig({ sim, p, paused, showLabels, braking, onBraking, timeEl }: RigProps) {
   const t = useRef(0)
   const wheel = useRef<Group>(null)
   const upper = useRef<Group>(null)
   const lower = useRef<Group>(null)
   const roller = useRef<Group>(null)
-  const volt = useRef<HTMLSpanElement>(null)
+  const reading = useRef<VoltageReading>({ voltage: sim.e0, charging: sim.charging })
   const lastBraking = useRef(false)
 
   useEffect(() => {
@@ -76,14 +74,15 @@ function Rig({ tab, sim, p, paused, showLabels, braking, onBraking, timeEl }: Ri
     if (t.current > T1 + FRICTION_S + HOLD_S) t.current = 0
     const tt = t.current
     const { s, v } = motion(sim, p.v0, tt)
-    const th = (SPIN[tab] * s) / p.r
+    const th = (SPIN * s) / p.r
     if (wheel.current) wheel.current.rotation.z = -th
     if (upper.current) upper.current.rotation.z = -th
     if (lower.current) lower.current.rotation.z = th // 구동 기어 쌍은 같은 크기(1:1)
     if (roller.current) roller.current.rotation.z = th * sim.G
-    if (volt.current) volt.current.textContent = `${(sim.c * v).toFixed(1)} V`
     if (timeEl.current) timeEl.current.textContent = tt.toFixed(1)
     const b = tt > T1
+    reading.current.voltage = sim.c * v
+    reading.current.charging = sim.charging && !b
     if (b !== lastBraking.current) {
       lastBraking.current = b
       onBraking(b)
@@ -398,7 +397,7 @@ function Rig({ tab, sim, p, paused, showLabels, braking, onBraking, timeEl }: Ri
         box={[1.1, 0.24, 0.56]}
         color="#20262D"
         mat={MAT.plastic}
-        label={tab === 'leaf' ? '배터리팩(리프 축소)' : '배터리팩 12V'}
+        label="배터리팩 12V"
         anchorAt={[0, 0.12, 0]}
         labelAt={lw(pBattery, 0.88, 0.67)}
         showLabel={L}
@@ -411,7 +410,7 @@ function Rig({ tab, sim, p, paused, showLabels, braking, onBraking, timeEl }: Ri
         ))}
       </Part>
 
-      <VoltageScreen position={[2.5, -0.22, -0.5]} showLabel={L} valueRef={volt} braking={braking} />
+      <VoltageScreen position={[2.5, -0.22, -0.5]} showLabel={L} readingRef={reading} />
 
       {/* 배선: 발전용 모터 → INA219 ② → 브레드보드 / 배터리 → INA219 ① → L298N → 구동용 모터 */}
       <Line points={[toWorld([0, Ry, ZW + 0.58]), [pIna2[0] - 0.3, -1.4, pIna2[2]], pIna2, [pBoard[0] - 0.5, -1.38, pBoard[2]]]} color="#C2410C" lineWidth={2} />
@@ -423,7 +422,7 @@ function Rig({ tab, sim, p, paused, showLabels, braking, onBraking, timeEl }: Ri
   )
 }
 
-export default function Scene3D({ tab, sim, p }: { tab: TabId; sim: Sim; p: Phys }) {
+export default function Scene3D({ sim, p }: { sim: Sim; p: Phys }) {
   const [webgl] = useState(hasWebGL)
   const [showLabels, setShowLabels] = useState(true)
   const [paused, setPaused] = useState(() => window.matchMedia('(prefers-reduced-motion: reduce)').matches)
@@ -438,7 +437,7 @@ export default function Scene3D({ tab, sim, p }: { tab: TabId; sim: Sim; p: Phys
         {webgl ? (
           <>
             <Canvas shadows camera={{ position: [0.22, 1.7, 8.6], fov: 42 }} dpr={[1, 2]} onCreated={() => setReady(true)}>
-              <Rig tab={tab} sim={sim} p={p} paused={paused} showLabels={showLabels} braking={braking} onBraking={setBraking} timeEl={timeEl} />
+              <Rig sim={sim} p={p} paused={paused} showLabels={showLabels} braking={braking} onBraking={setBraking} timeEl={timeEl} />
             </Canvas>
             {!ready && <p className="scene-msg">3D 장면을 준비하는 중이에요.</p>}
           </>
@@ -453,9 +452,9 @@ export default function Scene3D({ tab, sim, p }: { tab: TabId; sim: Sim; p: Phys
             <ToggleButton pressed={paused} onToggle={() => setPaused(!paused)} on="애니메이션 재생" off="애니메이션 멈춤" />
           </div>
           <p className="small">
-            회전은 실제의 1/{1 / SPIN[tab]} 속도로 보여 줘요(시간은 실제와 같음). 재생 시각 <span ref={timeEl}>0.0</span> s
+            회전은 실제의 1/{1 / SPIN} 속도로 보여 줘요(시간은 실제와 같음). 재생 시각 <span ref={timeEl}>0.0</span> s
             (회생 구간 0~{(sim.charging ? sim.tEnd : 0).toFixed(1)} s, 이후 마찰 브레이크 {FRICTION_S} s)
-            {tab === 'model' && ` · 이 기어비의 발전기 바퀴 지름 ${((200 * p.r) / sim.G).toFixed(1)} cm`}
+            {` · 이 기어비의 발전기 바퀴 지름 ${((200 * p.r) / sim.G).toFixed(1)} cm`}
           </p>
           <p className="small scene-hint">
             {braking ? '이 속도 아래에서는 전압이 낮아 충전되지 않아요. 남은 에너지는 마찰 브레이크가 맡아요.' : ' '}

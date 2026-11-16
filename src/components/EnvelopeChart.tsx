@@ -4,7 +4,7 @@ import ChartCard, { baseOptions, C, tag } from './ChartCard.tsx'
 import { fmtJ } from './ResultCard.tsx'
 import { velocity, type Phys, type Sim } from '../lib/physics.ts'
 
-export default function EnvelopeChart({ p, sim, kJ }: { p: Phys; sim: Sim; kJ: boolean }) {
+export default function EnvelopeChart({ p, sim }: { p: Phys; sim: Sim }) {
   const tMax = sim.charging ? sim.tEnd : 1
 
   const data = useMemo(() => {
@@ -62,7 +62,7 @@ export default function EnvelopeChart({ p, sim, kJ }: { p: Phys; sim: Sim; kJ: b
   return (
     <ChartCard
       title="전체 제동 구간"
-      aside={`이 기어비에서 배터리에 저장되는 에너지: ${fmtJ(sim.Estore, kJ)}`}
+      aside={`이 기어비에서 배터리에 저장되는 에너지: ${fmtJ(sim.Estore)}`}
       note="교류 파형은 시각화용 단순화예요(실제 출력은 직류에 가까움)."
       label={`기전력 e(t)가 ${sim.e0.toFixed(1)}V에서 시작해 최소 전압 ${p.Vmin}V 쪽으로 줄어드는 그래프`}
     >

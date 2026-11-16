@@ -1,14 +1,8 @@
 import { useState } from 'react'
 import Header from './components/Header.tsx'
-import TabBar from './components/TabBar.tsx'
 import SimPanel from './components/SimPanel.tsx'
 import { optimal, simulate, sweepG } from './lib/physics.ts'
-import { presets, toSI, type Params, type TabId } from './lib/presets.ts'
-
-const TABS: { id: TabId; label: string }[] = [
-  { id: 'leaf', label: '닛산 리프 실차' },
-  { id: 'model', label: 'cm 모형' },
-]
+import { model, toSI, type Params } from './lib/presets.ts'
 
 const defaultG = (p: Params) => {
   const opt = optimal(sweepG(toSI(p), p.gRange, p.gStep))
@@ -18,24 +12,14 @@ const defaultG = (p: Params) => {
 }
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState<TabId>('leaf')
-  const [paramsByTab, setParamsByTab] = useState<Record<TabId, Params>>(presets)
-  const [gByTab, setGByTab] = useState<Record<TabId, number>>(() => ({
-    leaf: defaultG(presets.leaf),
-    model: defaultG(presets.model),
-  }))
+  const [params, setParams] = useState<Params>(model)
+  const [G, setG] = useState(() => defaultG(model))
 
   return (
     <div className="page">
       <Header />
-      <TabBar tabs={TABS} active={activeTab} onChange={setActiveTab} />
-      <SimPanel
-        tab={activeTab}
-        params={paramsByTab[activeTab]}
-        onParams={(p) => setParamsByTab((s) => ({ ...s, [activeTab]: p }))}
-        G={gByTab[activeTab]}
-        onG={(g) => setGByTab((s) => ({ ...s, [activeTab]: g }))}
-      />
+      <h2 className="model-heading" id="model-h">cm 모형</h2>
+      <SimPanel params={params} onParams={setParams} G={G} onG={setG} />
     </div>
   )
 }

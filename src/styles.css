@@ -84,34 +84,8 @@ input {
   color: var(--sub);
 }
 
-/* 탭 */
-.tabbar {
-  display: flex;
-  gap: 8px;
-  border-bottom: 1px solid var(--rule);
+.model-heading {
   margin-bottom: 16px;
-}
-
-.tab {
-  min-height: 48px;
-  padding: 0 16px;
-  border: 0;
-  border-bottom: 4px solid transparent;
-  margin-bottom: -1px;
-  background: none;
-  color: var(--sub);
-  cursor: pointer;
-  touch-action: manipulation;
-}
-
-.tab[aria-selected='true'] {
-  color: var(--ink);
-  font-weight: 800;
-  border-bottom-color: var(--main);
-}
-
-.tab:focus-visible {
-  outline-offset: -3px;
 }
 
 /* 레이아웃: 1열은 DOM 순서와 order로 배치 */
@@ -503,31 +477,4 @@ input[type='range'] {
 
 .tag-accent {
   color: var(--accent);
-}
-
-.tft {
-  display: grid;
-  justify-items: center;
-  gap: 2px;
-  color: #8ef0a0;
-  font-variant-numeric: tabular-nums;
-  white-space: nowrap;
-  pointer-events: none;
-  text-align: center;
-}
-
-.tft-low {
-  color: #fdba74;
-}
-
-.tft-sub {
-  font-size: var(--fs-s);
-  line-height: 1.1;
-  color: #cbd5e1;
-}
-
-.tft-val {
-  font-size: var(--fs-m);
-  font-weight: 800;
-  line-height: 1.2;
 }

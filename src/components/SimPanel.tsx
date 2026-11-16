@@ -9,30 +9,25 @@ import ResultCard from './ResultCard.tsx'
 import SmallNote from './SmallNote.tsx'
 import WaveZoomChart from './WaveZoomChart.tsx'
 import { FRICTION_S, optimal, simulate, sweepG, verify } from '../lib/physics.ts'
-import { toSI, type Params, type TabId } from '../lib/presets.ts'
+import { toSI, type Params } from '../lib/presets.ts'
 
 const Scene3D = lazy(() => import('./Scene3D.tsx'))
 
-const NOTES: Record<TabId, string> = {
-  leaf: '기준차량: 닛산 리프 2017년형 30kWh · 공차중량 1521kg(트림 미확인, 1,507~1,545kg 범위) · 휠 반지름 0.216m(타이어 약 0.32m) · 최소 전압 240V · 배터리 용량 30kWh · 발전기 효율 80%',
-  model: '구동: 12V 배터리 → L298N → 모터 200rpm → 기어 7cm(같은 크기 2개, 1:1) → 바퀴 15cm · 발전: 메인 바퀴 테두리에 닿는 발전기 바퀴 → 모터 200rpm(12V) · 기어비 G = 메인 바퀴 지름 ÷ 발전기 바퀴 지름 · 전류·전압은 INA219 2개로 측정 · R_i는 추정값 · η는 가정값',
-}
+const MODEL_NOTE = '구동: 12V 배터리 → L298N → 모터 200rpm → 기어 7cm(같은 크기 2개, 1:1) → 바퀴 15cm · 발전: 메인 바퀴 테두리에 닿는 발전기 바퀴 → 모터 200rpm(12V) · 기어비 G = 메인 바퀴 지름 ÷ 발전기 바퀴 지름 · 전류·전압은 INA219 2개로 측정 · R_i는 추정값 · η는 가정값'
 
 interface Props {
-  tab: TabId
   params: Params
   onParams: (p: Params) => void
   G: number
   onG: (g: number) => void
 }
 
-export default function SimPanel({ tab, params, onParams, G, onG }: Props) {
+export default function SimPanel({ params, onParams, G, onG }: Props) {
   const p = useMemo(() => toSI(params), [params])
   const sim = useMemo(() => simulate(p, G), [p, G])
   const sweep = useMemo(() => sweepG(p, params.gRange, params.gStep), [p, params.gRange, params.gStep])
   const opt = useMemo(() => optimal(sweep), [sweep])
   const digits = params.gStep < 0.1 ? 2 : 1
-  const kJ = tab === 'leaf'
 
   if (import.meta.env.DEV) {
     const { storeErr, balanceErr } = verify(p, G)
@@ -41,8 +36,8 @@ export default function SimPanel({ tab, params, onParams, G, onG }: Props) {
   }
 
   return (
-    <div className="sim" role="tabpanel" id="tabpanel" aria-labelledby={`tab-${tab}`}>
-      <SmallNote>{NOTES[tab]}</SmallNote>
+    <div className="sim" aria-labelledby="model-h">
+      <SmallNote>{MODEL_NOTE}</SmallNote>
       <div className="cols">
         <div className="col-left">
           <div className="o-scene">
@@ -51,16 +46,16 @@ export default function SimPanel({ tab, params, onParams, G, onG }: Props) {
                   <p className="scene-msg">3D 장면을 준비하는 중이에요.</p>
                 </div>
               )}>
-              <Scene3D tab={tab} sim={sim} p={p} />
+              <Scene3D sim={sim} p={p} />
             </Suspense>
           </div>
           <div className="o-result">
-            <ResultCard sim={sim} opt={opt} kJ={kJ} digits={digits} />
+            <ResultCard sim={sim} opt={opt} digits={digits} />
           </div>
         </div>
         <div className="col-right">
           <div className="o-form">
-            <ParamForm key={tab} tab={tab} params={params} onParams={onParams} />
+            <ParamForm params={params} onParams={onParams} />
           </div>
           <div className="o-slider">
             <GearSlider G={G} range={params.gRange} step={params.gStep} optimalG={opt.G} onChange={onG} />
@@ -77,7 +72,7 @@ export default function SimPanel({ tab, params, onParams, G, onG }: Props) {
           </div>
           <div className="o-charts">
             <WaveZoomChart p={p} sim={sim} />
-            <EnvelopeChart p={p} sim={sim} kJ={kJ} />
+            <EnvelopeChart p={p} sim={sim} />
             <GearSweepChart p={p} sweep={sweep} opt={opt} G={G} range={params.gRange} />
           </div>
           <div className="o-method">
@@ -95,8 +90,7 @@ export default function SimPanel({ tab, params, onParams, G, onG }: Props) {
                 <li>시작 감속도 a0 = c·(e0 − V_min)/(R_i·m), 평균 감속도 = (v0 − v(t_end))/t_end</li>
                 <li>무제약 최적 G* = 2·V_min·r/(k_t·v0) (이때 e0 = 2·V_min, E_store = η·¼·m·v0²)</li>
                 <li>
-                  최적 기어비: 1 ≤ a0 ≤ 2.5 m/s²인 G 중 E_store가 가장 큰 값(리프 1~20을 0.1 간격, 모형 1~10을 0.01 간격으로
-                  계산)
+                  최적 기어비: 1 ≤ a0 ≤ 2.5 m/s²인 G 중 E_store가 가장 큰 값(모형 1~10을 0.01 간격으로 계산)
                 </li>
                 <li>교류 파형: f = G·v(t)/(2π·r), 전압 = e(t)·sin(2π∫f dt)</li>
                 <li>
